@@ -170,20 +170,24 @@ const isPendingFamilyAction = (notification: NotificationResponse) => {
 
 const handleFamilyAction = async (notification: NotificationResponse, action: 'accept' | 'reject' | 'approve' | 'approvalReject') => {
   if (!notification.actionRefId) return;
-  if (action === 'accept') {
-    await acceptInvitation(notification.actionRefId);
-    ElMessage.success('已加入家庭组');
-  } else if (action === 'reject') {
-    await rejectInvitation(notification.actionRefId);
-    ElMessage.success('已拒绝家庭邀请');
-  } else if (action === 'approve') {
-    await approveInvitation(notification.actionRefId);
-    ElMessage.success('已同意邀请申请');
-  } else {
-    await rejectInvitationApproval(notification.actionRefId);
-    ElMessage.success('已拒绝邀请申请');
+  try {
+    if (action === 'accept') {
+      await acceptInvitation(notification.actionRefId);
+      ElMessage.success('已加入家庭组');
+    } else if (action === 'reject') {
+      await rejectInvitation(notification.actionRefId);
+      ElMessage.success('已拒绝家庭邀请');
+    } else if (action === 'approve') {
+      await approveInvitation(notification.actionRefId);
+      ElMessage.success('已同意邀请申请');
+    } else {
+      await rejectInvitationApproval(notification.actionRefId);
+      ElMessage.success('已拒绝邀请申请');
+    }
+    await loadData();
+  } catch {
+    await loadData();
   }
-  await loadData();
 };
 
 const weekDayLabel = (day?: number) => ['-', '周一', '周二', '周三', '周四', '周五', '周六', '周日'][day || 0];

@@ -513,7 +513,7 @@ public class FamilyServiceImpl implements FamilyService {
             throw new IllegalArgumentException("你已在该家庭组中");
         }
         assertUserHasNoActiveFamily(currentUserId);
-        assertFamilyHasCapacity(family);
+        assertFamilyHasCapacity(family, "家庭人数已达上限，请联系家庭创建者扩容后再接受邀请");
 
         FamilyMember member = memberRepository.findByFamilyIdAndUserId(family.getId(), currentUserId)
                 .orElseGet(FamilyMember::new);
@@ -563,7 +563,7 @@ public class FamilyServiceImpl implements FamilyService {
         if (!ACTIVE_STATUS.equals(family.getStatus())) {
             throw new IllegalArgumentException("家庭组已不可用");
         }
-        return family;
+        return ensureValidMaxMembers(family);
     }
 
     private FamilyMember assertActiveMember(Long familyId, Long userId) {
@@ -624,7 +624,7 @@ public class FamilyServiceImpl implements FamilyService {
         response.setName(family.getName());
         response.setCreatorUserId(family.getCreatorUserId());
         response.setCreatorUsername(usernameOf(userRepository.findById(family.getCreatorUserId()).orElse(null)));
-        response.setMaxMembers(family.getMaxMembers() == null ? DEFAULT_MAX_MEMBERS : family.getMaxMembers());
+        response.setMaxMembers(normalizeMaxMembers(family.getMaxMembers()));
         response.setMemberCount((int) members.stream().filter(member -> ACTIVE_STATUS.equals(member.getStatus())).count());
         response.setCreator(family.getCreatorUserId().equals(currentUserId));
         response.setStatus(family.getStatus());
@@ -806,11 +806,32 @@ public class FamilyServiceImpl implements FamilyService {
     }
 
     private void assertFamilyHasCapacity(FamilyGroup family) {
-        int maxMembers = family.getMaxMembers() == null ? DEFAULT_MAX_MEMBERS : family.getMaxMembers();
+        assertFamilyHasCapacity(family, "家庭人数已达上限，请由创建者扩容后再邀请");
+    }
+
+    private void assertFamilyHasCapacity(FamilyGroup family, String message) {
+        family = ensureValidMaxMembers(family);
+        int maxMembers = normalizeMaxMembers(family.getMaxMembers());
         long memberCount = memberRepository.countByFamilyIdAndStatus(family.getId(), ACTIVE_STATUS);
         if (memberCount >= maxMembers) {
-            throw new IllegalArgumentException("家庭人数已达上限，请由创建者扩容后再邀请");
+            throw new IllegalArgumentException(message);
         }
+    }
+
+    private FamilyGroup ensureValidMaxMembers(FamilyGroup family) {
+        int normalizedMaxMembers = normalizeMaxMembers(family.getMaxMembers());
+        if (!Integer.valueOf(normalizedMaxMembers).equals(family.getMaxMembers())) {
+            family.setMaxMembers(normalizedMaxMembers);
+            return familyGroupRepository.save(family);
+        }
+        return family;
+    }
+
+    private int normalizeMaxMembers(Integer maxMembers) {
+        if (maxMembers == null || maxMembers < DEFAULT_MAX_MEMBERS) {
+            return DEFAULT_MAX_MEMBERS;
+        }
+        return Math.min(maxMembers, ABSOLUTE_MAX_MEMBERS);
     }
 
     private void notifyInvitee(FamilyInvitation invitation, FamilyGroup family, User inviter, User invitee) {

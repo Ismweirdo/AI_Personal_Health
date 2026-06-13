@@ -49,7 +49,7 @@ request.interceptors.response.use(
   (response) => {
     const res = response.data;
     if (typeof res.code === 'number' && res.code !== 200) {
-      const message = codeMessageMap[res.code] || res.message || '请求失败';
+      const message = res.message || codeMessageMap[res.code] || '请求失败';
       const config = response.config as typeof response.config & SilentRequestConfig;
       if (!config.silentError) {
         ElMessage.error(message);
@@ -60,7 +60,7 @@ request.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status;
-    const message = (status && codeMessageMap[status]) || error.response?.data?.message || error.message;
+    const message = error.response?.data?.message || (status && codeMessageMap[status]) || error.message;
     const config = error.config as SilentRequestConfig | undefined;
     if (!config?.silentError) {
       ElMessage.error(message);
