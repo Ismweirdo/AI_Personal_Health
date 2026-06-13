@@ -1,0 +1,76 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+.m2/
+**/.m2/
+health-management-system/config/
+health-management-web/.vite/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.github/modernize/
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Configuration files with secrets
+application-local.yml
+application-dev.yml
+application-prod.yml
+secrets.properties
+
+# Node.js
+node_modules/
+dist/
+build/
+.npmrc
+.yarnrc
+
+# Database
+*.db
+*.sqlite
+
+# Security
+*.pem
+*.key
+*.crt
+*.p12
